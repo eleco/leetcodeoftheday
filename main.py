@@ -3,9 +3,12 @@ import aiohttp
 from gql import gql, Client
 from gql.transport.aiohttp import AIOHTTPTransport
 import requests
-import config
 import traceback
+import os
 
+env_email = os.environ['LEETCODE_EMAIL']
+env_mailgun_api = os.environ['LEETCODE_MAILGUN_API']
+env_mailgun_endpoint = os.environ['LEETCODE_MAILGUN_ENDPOINT']
 
 
 def get_leetcode_of_the_day():
@@ -38,10 +41,10 @@ def send_simple_message(msg):
 
     try:
         return requests.post(
-            config.mailgun_endpoint,
-            auth=("api", config.mailgun_api),
+            env_mailgun_endpoint,
+            auth=("api", env_mailgun_api),
             data={"from": "leetcode of the day bot <mailgun@YOUR_DOMAIN_NAME>",
-                  "to": [config.email],
+                  "to": [env_email],
                   "subject": "leetcode of the day " + date + " : " + title,
                   "html": "<html><a href=https://leetcode.com" + link + ">" + title + "</html>"
                   })
