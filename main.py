@@ -1,14 +1,16 @@
 # email the leetcode of the day, every day
 import aiohttp
+import mailjet_rest
 from gql import gql, Client
 from gql.transport.aiohttp import AIOHTTPTransport
 import requests
 import traceback
 import os
 
-env_email = os.environ['LEETCODE_EMAIL']
-env_mailgun_api = os.environ['LEETCODE_MAILGUN_API']
-env_mailgun_endpoint = os.environ['LEETCODE_MAILGUN_ENDPOINT']
+email_sender = os.environ["LEETCODE_SENDER"]
+email_recipient = os.environ["LEETCODE_RECIPIENT"]
+api_key = os.environ["LEETCODE_MAILJET_KEY"]
+api_secret = os.environ["LEETCODE_MAILJET_SECRET"]
 
 
 def get_leetcode_of_the_day():
@@ -40,14 +42,27 @@ def send_simple_message(msg):
     title = msg["activeDailyCodingChallengeQuestion"]["question"]["title"]
 
     try:
-        return requests.post(
-            env_mailgun_endpoint,
-            auth=("api", env_mailgun_api),
-            data={"from": "leetcode of the day bot <mailgun@YOUR_DOMAIN_NAME>",
-                  "to": [env_email],
-                  "subject": "leetcode of the day " + date + " : " + title,
-                  "html": "<html><a href=https://leetcode.com" + link + ">" + title + "</html>"
-                  })
+        data = {
+            'Messages': [
+                {
+                    "From": {
+                        "Email": email_sender,
+                        "Name": "Leetcode of the day"
+                    },
+                    "To": [
+                        {
+                            "Email": email_recipient
+                        }
+                    ],
+                    "Subject": "leetcode of the day " + date + " : " + title,
+                    "TextPart": "Leetcode of the day",
+                    "HTMLPart": "<html><a href=https://leetcode.com" + link + ">" + title + "</html>",
+                    "CustomID": "AppLeetcode"
+                }
+            ]
+        }
+        mailjet = mailjet_rest.Client(auth=(api_key, api_secret), version='v3.1')
+        return mailjet.send.create(data=data)
     except Exception:
         traceback.print_exc()
 
